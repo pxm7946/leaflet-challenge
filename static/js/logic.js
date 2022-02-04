@@ -1,17 +1,20 @@
 //Create map
-var map = L.map('map').setView([51.505, -0.09], 7);
+var map = L.map('map').setView([40.7, -94.5], 3);
 
-L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-    attribution: 'Map data &copy, <a href = "https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', 
+var graymap = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>', 
     maxZoom: 18,
-    id: 'mapbox/streets-v11',
+    id: 'mapbox/light-v10',
     tileSize: 512,
     zoomOffset: -1,
     accessToken: API_KEY
-}).addTo(map);
+}
+);
 
-d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson".then(data => {
-console.log(data);
+graymap.addTo(map);
+
+//Retrieving earthquake data
+d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson").then(function(data) {
 
 
     //Create style for map
@@ -29,17 +32,19 @@ console.log(data);
 
     //Add color to map
     function getColor(depth) {
-
-        switch (depth) {
-
-            case depth > 500:
-                return "#005F73";
-            case depth > 300:
-                return "#0A9396";
-            case depth > 100:
-                return "#E9D8A6"
-
-            default: return "#001219"
+        switch (true) {
+        case depth > 90:
+            return "#922B21";
+        case depth > 70:
+            return "#C0392B";
+        case depth > 50:
+            return "#DC7633";
+        case depth > 30:
+            return "#F0B27A";
+        case depth > 10:
+            return "#F9E79F";
+        default: 
+            return "#D6EAF8";
         }
     }
 
@@ -60,17 +65,18 @@ console.log(data);
 
         style: styleInfo,
 
-        onEachFeature: function (feature, layer) {
+        onEachFeature: function(feature, layer) {
             layer.bindPopup(
-                "Magnitude: "
+              "Magnitude: "
                 + feature.properties.mag
-                +"<br>Depth: "
+                + "<br>Depth: "
                 + feature.geometry.coordinates[2]
-                +"<br>Location: "
+                + "<br>Location: "
                 + feature.properties.place
+      
             );
         }
-    }).addTo(map);
+    }).addTo(map)
 
     var legend = L.control({
         position: "bottomright"
@@ -79,21 +85,27 @@ console.log(data);
     legend.onAdd = function(){
         var div = L.DomUtil.create("div", "info legend");
 
-        var grades = [-100, 100, 300, 500];
+        var grades = [-10, 10, 30, 50, 70, 90];
         var colors = [
-            "#001219",
-            "#E9D8A6",
-            "#0A9396",
-            "#005F73"
-        ];
+            "#D6EAF8",
+            "#F9E79F",
+            "#F0B27A",
+            "#DC7633",
+            "#C0392B",
+            "#922B21"];
 
         for (var i = 0; i < grades.length; i++) {
-            div.innerHTML += "<i style='background: " + colors[i] + "'></i> "
-            + grades[i] + (grades[i + 1] ? "&ndash," + grades[i+1] + "<br>" : "+");
-        }
-        return div;
-    };
+            div.innerHTML += "<i style='background: "
+              + colors[i]
+              + "'></i> "
+              + grades[i]
+              + (grades[i + 1] ? "&ndash;" + grades[i + 1] + "<br>" : "+");
+          }
+          return div;
+        };
+      
+      
 
     //Add legend to map
     legend.addTo(map);
-}))
+}); 
